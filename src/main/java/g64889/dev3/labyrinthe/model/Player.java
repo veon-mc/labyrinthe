@@ -42,6 +42,10 @@ public class Player {
         return currentPosition;
     }
 
+    public int getCurrentObjectiveIndex() {
+        return currentObjectiveIndex;
+    }
+
     public void setCurrentPosition(Position position) {
         this.currentPosition = position;
     }

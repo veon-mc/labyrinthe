@@ -380,8 +380,10 @@ public class LabyrinthGame {
         Player current = getCurrentPlayer();
         Position target = new Position(targetRow, targetCol);
 
-        if (!canMoveTo(current.getCurrentPosition(), target)) {
-            throw new IllegalArgumentException("Invalid move");
+        if (!current.getCurrentPosition().equals(target)) {
+            if (!canMoveTo(current.getCurrentPosition(), target)) {
+                throw new IllegalArgumentException("Invalid move");
+            }
         }
         current.setCurrentPosition(target);
         checkObjectiveReached(current);
