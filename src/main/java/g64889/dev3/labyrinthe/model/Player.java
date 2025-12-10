@@ -68,4 +68,8 @@ public class Player {
             currentObjectiveIndex++;
         }
     }
+
+    public void setCurrentObjectiveIndex(int index) {
+        this.currentObjectiveIndex = index;
+    }
 }

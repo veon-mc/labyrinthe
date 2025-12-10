@@ -4,7 +4,7 @@ import java.util.*;
 
 public class LabyrinthGame {
     private Board board;
-    private List<Player> players;
+    private final List<Player> players;
     private int currentPlayerIndex;
     private Tile spareTile;
     private boolean gameOver;
@@ -15,8 +15,10 @@ public class LabyrinthGame {
     private Direction lastInsertionSide;
     private int lastInsertionIndex;
     private boolean tileInserted;
+    private final CommandManager commandManager;
 
     public LabyrinthGame() {
+        this.commandManager = new CommandManager();
         this.board = null;
         this.objectives = new ArrayList<>();
         this.players = new ArrayList<>();
@@ -440,16 +442,16 @@ public class LabyrinthGame {
         return board;
     }
 
-    public Player getWinner() {
-        return winner;
+    public Tile getSpareTile() {
+        return spareTile;
     }
 
     public boolean isGameOver() {
         return gameOver;
     }
 
-    public Tile getSpareTile() {
-        return spareTile;
+    public Player getWinner() {
+        return winner;
     }
 
     public List<Player> getPlayers() {
@@ -460,7 +462,48 @@ public class LabyrinthGame {
         return tileInserted;
     }
 
-    private PathFinder getPathFinder() {
+    public void undo() {
+        commandManager.undo();
+    }
+
+    public void redo() {
+        commandManager.redo();
+    }
+
+    public boolean canUndo() {
+        return commandManager.canUndo();
+    }
+
+    public boolean canRedo() {
+        return commandManager.canRedo();
+    }
+
+    public Direction getLastInsertionSide() {
+        return lastInsertionSide;
+    }
+
+    public int getLastInsertionIndex() {
+        return lastInsertionIndex;
+    }
+
+    public void setLastInsertion(Direction side, int index) {
+        this.lastInsertionSide = side;
+        this.lastInsertionIndex = index;
+    }
+
+    public int getCurrentPlayerIndex() {
+        return currentPlayerIndex;
+    }
+
+    public void setCurrentPlayerIndex(int index) {
+        this.currentPlayerIndex = index;
+    }
+
+    public void setTileInserted(boolean inserted) {
+        this.tileInserted = inserted;
+    }
+
+    public PathFinder getPathFinder() {
         return pathFinder;
     }
 }
