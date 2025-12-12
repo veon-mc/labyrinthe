@@ -74,4 +74,12 @@ public class Board {
         grid[size - 1][col] = spareTile;
         spareTile = ejected;
     }
+
+    public void setGrid(Tile[][] grid) {
+        this.grid = grid;
+    }
+
+    public void setSpareTile(Tile tile) {
+        this.spareTile = tile;
+    }
 }

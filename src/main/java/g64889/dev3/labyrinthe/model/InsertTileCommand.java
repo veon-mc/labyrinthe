@@ -1,12 +1,19 @@
 package g64889.dev3.labyrinthe.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class InsertTileCommand implements Command {
     private final LabyrinthGame game;
     private final Direction side;
     private final int index;
+
+    private Tile[][] previousGrid;
     private Tile previousSpareTile;
+    private List<Position> previousPlayerPositions;
     private Direction previousInsertionSide;
     private int previousInsertionIndex;
+    private boolean previousTileInserted;
 
     public InsertTileCommand(LabyrinthGame game, Direction side, int index) {
         this.game = game;
@@ -16,26 +23,25 @@ public class InsertTileCommand implements Command {
 
     @Override
     public void execute() {
-        previousSpareTile = game.getSpareTile();
+        previousGrid = game.copyGrid();
+        previousSpareTile = game.copySpareTile();
+        previousPlayerPositions = game.copyPlayerPositions();
         previousInsertionSide = game.getLastInsertionSide();
         previousInsertionIndex = game.getLastInsertionIndex();
+        previousTileInserted = game.isTileInserted();
 
         game.insertTile(side, index);
     }
 
     @Override
     public void undo() {
-        Direction oppositeSide = getOppositeSide(side);
-        game.insertTile(oppositeSide, index);
+        if (previousGrid == null) {
+            throw new IllegalStateException("Command has not been executed yet");
+        }
+        game.restoreGrid(previousGrid);
+        game.setSpareTile(previousSpareTile);
+        game.restorePlayerPositions(previousPlayerPositions);
         game.setLastInsertion(previousInsertionSide, previousInsertionIndex);
-    }
-
-    private Direction getOppositeSide(Direction dir) {
-        return switch (dir) {
-            case NORTH -> Direction.SOUTH;
-            case SOUTH -> Direction.NORTH;
-            case EAST -> Direction.WEST;
-            case WEST -> Direction.EAST;
-        };
+        game.setTileInserted(previousTileInserted);
     }
 }

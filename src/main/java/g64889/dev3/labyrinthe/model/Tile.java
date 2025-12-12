@@ -43,4 +43,8 @@ public class Tile {
     public Objective getObjective() {
         return objective;
     }
+
+    public Tile copy() {
+        return new Tile(this.type, EnumSet.copyOf(this.openings), this.isFixed(), this.getObjective());
+    }
 }

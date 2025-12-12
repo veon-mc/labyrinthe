@@ -67,9 +67,9 @@ public class LabyrinthGame {
         int objectiveIndex = 0;
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
-                if (isFixedPosition(row,col)) {
+                if (isFixedPosition(row, col)) {
                     grid[row][col] = createFixedTile(row, col, availableObjectives, objectiveIndex);
-                    if (!isCorner(row,col)) {
+                    if (!isCorner(row, col)) {
                         objectiveIndex++;
                     }
                 }
@@ -228,10 +228,14 @@ public class LabyrinthGame {
 
         // Type L = 2 ouvertures adjacentes (angle droit)
         switch (choice) {
-            case 0: return EnumSet.of(Direction.NORTH, Direction.EAST);
-            case 1: return EnumSet.of(Direction.EAST, Direction.SOUTH);
-            case 2: return EnumSet.of(Direction.SOUTH, Direction.WEST);
-            default: return EnumSet.of(Direction.WEST, Direction.NORTH);
+            case 0:
+                return EnumSet.of(Direction.NORTH, Direction.EAST);
+            case 1:
+                return EnumSet.of(Direction.EAST, Direction.SOUTH);
+            case 2:
+                return EnumSet.of(Direction.SOUTH, Direction.WEST);
+            default:
+                return EnumSet.of(Direction.WEST, Direction.NORTH);
         }
     }
 
@@ -292,6 +296,10 @@ public class LabyrinthGame {
         lastInsertionSide = side;
         lastInsertionIndex = index;
         tileInserted = true;
+    }
+
+    public void doInsertTile(Direction side, int index) {
+        commandManager.executeCommand(new InsertTileCommand(this, side, index));
     }
 
     public boolean canInsertTile(Direction side, int index) {
@@ -395,6 +403,10 @@ public class LabyrinthGame {
         }
     }
 
+    public void doMovePlayer(int row, int col) {
+        commandManager.executeCommand(new MovePlayerCommand(this, row, col));
+    }
+
     private void checkObjectiveReached(Player player) {
         Tile currentTile = board.getTileAt(player.getCurrentPosition());
 
@@ -486,6 +498,19 @@ public class LabyrinthGame {
         return lastInsertionIndex;
     }
 
+    public void setGameOver(boolean gameOver) {
+        this.gameOver = gameOver;
+    }
+
+    public void setSpareTile(Tile tile) {
+        this.spareTile = tile;
+        board.setSpareTile(tile);
+    }
+
+    public void setWinner(Player winner) {
+        this.winner = winner;
+    }
+
     public void setLastInsertion(Direction side, int index) {
         this.lastInsertionSide = side;
         this.lastInsertionIndex = index;
@@ -505,6 +530,53 @@ public class LabyrinthGame {
 
     public PathFinder getPathFinder() {
         return pathFinder;
+    }
+
+    public List<Position> copyPlayerPositions() {
+        List<Position> positions = new ArrayList<>();
+        for (Player p : players) {
+            positions.add(p.getCurrentPosition());
+        }
+        return positions;
+    }
+
+    public Tile[][] copyGrid() {
+        int size = board.getSize();
+        Tile[][] copy = new Tile[size][size];
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                copy[row][col] = board.getTileAt(new Position(row, col));
+            }
+        }
+        return copy;
+    }
+
+    public void restoreGrid(Tile[][] grid) {
+        board.setGrid(grid);
+    }
+
+    public void restorePlayerPositions(List<Position> positions) {
+        for (int i = 0; i < players.size(); i++) {
+            players.get(i).setCurrentPosition(positions.get(i));
+        }
+    }
+
+    public List<Integer> copyObjectiveIndices() {
+        List<Integer> indices = new ArrayList<>();
+        for (Player p : players) {
+            indices.add(p.getCurrentObjectiveIndex());
+        }
+        return indices;
+    }
+
+    public Tile copySpareTile() {
+        return spareTile.copy(); // idéal
+    }
+
+    public void restoreObjectiveIndices(List<Integer> indices) {
+        for (int i = 0; i < players.size(); i++) {
+            players.get(i).setCurrentObjectiveIndex(indices.get(i));
+        }
     }
 }
 
