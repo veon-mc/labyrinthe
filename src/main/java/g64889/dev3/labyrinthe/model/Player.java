@@ -23,6 +23,8 @@ public class Player {
     }
 
     public ObjectiveCard getCurrentObjective() {
+        if (objectives == null || objectives.isEmpty()) return null;
+        if (currentObjectiveIndex < 0 || currentObjectiveIndex >= objectives.size()) return null;
         return objectives.get(currentObjectiveIndex);
     }
 
@@ -71,5 +73,9 @@ public class Player {
 
     public void setCurrentObjectiveIndex(int index) {
         this.currentObjectiveIndex = index;
+    }
+
+    public PlayerColor getColor() {
+        return color;
     }
 }

@@ -50,46 +50,90 @@ public class LabyrinthGame {
 
     private void initObjectives() {
         objectives.clear();
-        String[] objectiveNames = {
-                "fantôme", "gnome", "dragon", "fée", "chauve-souris", "génie",
-                "hibou", "scarabée", "rat", "araignée", "papillon", "lézard",
-                "grimoire", "bourse d'or", "carte", "couronne", "clefs", "ossements",
-                "bague", "coffre au trésor", "émeraude", "épée", "chandelier", "heaume"
+
+        String[] names = {
+                "fantôme","gnome","dragon","fée","chauve-souris","génie",
+                "hibou","scarabée","rat","araignée","papillon","lézard",
+                "grimoire","bourse d'or","carte","couronne","clefs","ossements",
+                "bague","coffre au trésor","émeraude","épée","chandelier","heaume"
         };
 
-        for (String name : objectiveNames) {
-            objectives.add(new Objective(name));
-        }
+        for (String n : names) objectives.add(new Objective(n));
+
+        if (objectives.size() != 24)
+            throw new IllegalStateException("Il faut 24 objectifs");
+    }
+
+    private Objective fixedObjectiveAt(int row, int col) {
+
+        if (row == 0 && col == 2) return new Objective("carte");
+        if (row == 0 && col == 4) return new Objective("couronne");
+
+        if (row == 2 && col == 0) return new Objective("clefs");
+        if (row == 4 && col == 0) return new Objective("chandelier");
+
+        if (row == 6 && col == 2) return new Objective("heaume");
+        if (row == 6 && col == 4) return new Objective("grimoire");
+
+        if (row == 2 && col == 6) return new Objective("bague");
+        if (row == 4 && col == 6) return new Objective("ossements");
+
+        if (row == 2 && col == 2) return new Objective("coffre au trésor");
+        if (row == 2 && col == 4) return new Objective("émeraude");
+        if (row == 4 && col == 2) return new Objective("bourse d'or");
+        if (row == 4 && col == 4) return new Objective("épée");
+
+        return null;
     }
 
     private void initBoard() {
         int size = 7;
         Tile[][] grid = new Tile[size][size];
-        List<Objective> availableObjectives = new ArrayList<>(objectives);
-        Collections.shuffle(availableObjectives);
-        int objectiveIndex = 0;
+
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
                 if (isFixedPosition(row, col)) {
-                    grid[row][col] = createFixedTile(row, col, availableObjectives, objectiveIndex);
-                    if (!isCorner(row, col)) {
-                        objectiveIndex++;
-                    }
-                }
+                    TileType type = determineTileType(row, col); // coins L, sinon T
+                    EnumSet<Direction> openings = getOpeningsForType(type, row, col);
 
+                    Objective obj = isCorner(row, col) ? null : fixedObjectiveAt(row, col);
+                    grid[row][col] = new Tile(type, openings, true, obj);
+                }
             }
         }
-        List<Tile> mobileTiles = createMobileTiles(availableObjectives, objectiveIndex);
-        Collections.shuffle(mobileTiles);
-        int mobileTileIndex = 0;
+
+        java.util.Set<String> usedFixed = new java.util.HashSet<>();
+        for (int r = 0; r < size; r++) {
+            for (int c = 0; c < size; c++) {
+                if (isFixedPosition(r, c) && !isCorner(r, c)) {
+                    usedFixed.add(fixedObjectiveAt(r, c).getName());
+                }
+            }
+        }
+
+        java.util.List<Objective> remaining = new java.util.ArrayList<>();
+        for (Objective o : objectives) {
+            if (!usedFixed.contains(o.getName())) remaining.add(o);
+        }
+
+        if (remaining.size() != 12) {
+            throw new IllegalStateException("Il doit rester 12 objectifs mobiles, trouvé: " + remaining.size());
+        }
+
+        java.util.Collections.shuffle(remaining);
+        java.util.List<Tile> mobileTiles = createMobileTiles(remaining, 0);
+        java.util.Collections.shuffle(mobileTiles);
+
+        int m = 0;
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
                 if (!isFixedPosition(row, col)) {
-                    grid[row][col] = mobileTiles.get(mobileTileIndex++);
+                    grid[row][col] = mobileTiles.get(m++);
                 }
             }
         }
-        spareTile = mobileTiles.get(mobileTileIndex);
+
+        spareTile = mobileTiles.get(m);
         board = new Board(grid, spareTile);
     }
 
@@ -99,13 +143,6 @@ public class LabyrinthGame {
 
     private boolean isCorner(int row, int col) {
         return (row == 0 || row == 6) && (col == 0 || col == 6);
-    }
-
-    private Tile createFixedTile(int row, int col, List<Objective> objectives, int objIndex) {
-        TileType type = determineTileType(row, col);
-        EnumSet<Direction> openings = getOpeningsForType(type, row, col);
-        Objective objective = isCorner(row, col) ? null : objectives.get(objIndex);
-        return new Tile(type, openings, true, objective);
     }
 
     private TileType determineTileType(int row, int col) {
@@ -182,20 +219,40 @@ public class LabyrinthGame {
 
         // 6 tuiles T avec objectif
         for (int i = 0; i < 6; i++) {
-            tiles.add(new Tile(TileType.T, randomOpeningsT(), false, objectives.get(objIndex++)));
+            tiles.add(new Tile(
+                    TileType.T,
+                    randomOpeningsT(),
+                    false,
+                    objectives.get(objIndex++)
+            ));
         }
 
         // 12 tuiles I sans objectif
         for (int i = 0; i < 12; i++) {
-            tiles.add(new Tile(TileType.I, randomOpeningsI(), false, null));
+            tiles.add(new Tile(
+                    TileType.I,
+                    randomOpeningsI(),
+                    false,
+                    null
+            ));
         }
 
         // 16 tuiles L (6 avec objectif, 10 sans)
         for (int i = 0; i < 6; i++) {
-            tiles.add(new Tile(TileType.L, randomOpeningsL(), false, objectives.get(objIndex++)));
+            tiles.add(new Tile(
+                    TileType.L,
+                    randomOpeningsL(),
+                    false,
+                    objectives.get(objIndex++)
+            ));
         }
         for (int i = 0; i < 10; i++) {
-            tiles.add(new Tile(TileType.L, randomOpeningsL(), false, null));
+            tiles.add(new Tile(
+                    TileType.L,
+                    randomOpeningsL(),
+                    false,
+                    null
+            ));
         }
 
         return tiles;
@@ -293,12 +350,13 @@ public class LabyrinthGame {
             throw new IllegalArgumentException("Invalid tile insertion position");
         }
 
-        updatePlayersForInsertion(side, index);
         board.insertSpareTile(side, index);
+        updatePlayersForInsertion(side, index);
         spareTile = board.getSpareTile();
         lastInsertionSide = side;
         lastInsertionIndex = index;
         tileInserted = true;
+        notifyObservers();
     }
 
     public void doInsertTile(Direction side, int index) {
@@ -315,7 +373,6 @@ public class LabyrinthGame {
                 return false;
             }
         }
-        notifyObservers();
         return true;
     }
 
@@ -590,7 +647,7 @@ public class LabyrinthGame {
     public void removeObserver(Observer o) { observers.remove(o); }
 
     private void notifyObservers() {
-        for (Observer o : observers) o.onGameChanged();
+        for (Observer o : observers) o.update();
     }
 }
 

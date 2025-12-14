@@ -5,7 +5,7 @@ import g64889.dev3.labyrinthe.console.ConsoleView;
 import g64889.dev3.labyrinthe.controller.ConsoleController;
 import g64889.dev3.labyrinthe.model.LabyrinthGame;
 
-public class Main {
+public class ConsoleMain {
     public static void main(String[] args) {
         LabyrinthGame game = new LabyrinthGame();
         ConsoleView view = new ConsoleView();

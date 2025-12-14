@@ -1,7 +1,6 @@
 package g64889.dev3.labyrinthe.model;
 
 import java.util.EnumSet;
-import java.util.Set;
 
 public class Tile {
 
@@ -44,7 +43,17 @@ public class Tile {
         return objective;
     }
 
+    public boolean hasObjective() {
+        return objective != null;
+    }
+
     public Tile copy() {
         return new Tile(this.type, EnumSet.copyOf(this.openings), this.isFixed(), this.getObjective());
     }
+
+    public TileType getType() {
+        return type;
+    }
+
+    public EnumSet<Direction> getOpenings() { return openings; }
 }
