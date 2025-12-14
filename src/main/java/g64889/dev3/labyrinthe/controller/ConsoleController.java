@@ -2,6 +2,8 @@ package g64889.dev3.labyrinthe.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import g64889.dev3.labyrinthe.controller.strategy.PlayerStrategy;
+import g64889.dev3.labyrinthe.controller.strategy.RandomStrategy;
 import g64889.dev3.labyrinthe.model.*;
 import g64889.dev3.labyrinthe.console.ConsoleView;
 
@@ -10,6 +12,7 @@ public class ConsoleController {
 
     private final LabyrinthGame game;
     private final ConsoleView view;
+    private List<PlayerStrategy> strategies;
 
     public ConsoleController(LabyrinthGame game, ConsoleView view) {
         this.game = game;
@@ -21,6 +24,13 @@ public class ConsoleController {
 
         int nbPlayers = view.askNumberOfPlayers();
         game.startGame(nbPlayers);
+        strategies = new ArrayList<>();
+
+        strategies.add(null);
+
+        for (int i = 1; i < nbPlayers; i++) {
+            strategies.add(new RandomStrategy());
+        }
 
         view.showGameStart();
 
@@ -33,6 +43,12 @@ public class ConsoleController {
 
     private void playTurn() {
         Player current = game.getCurrentPlayer();
+        PlayerStrategy strategy = strategies.get(current.getId() - 1);
+
+        if (strategy != null) {
+            playAutoTurn(current, strategy);
+            return;
+        }
 
         while (!game.isGameOver() && game.getCurrentPlayer() == current) {
 
@@ -55,6 +71,39 @@ public class ConsoleController {
             // on reboucle et on repasse par insertPhase().
             // Sinon, movePhase() a normalement fait doMovePlayer() => nextPlayer() => le tour est fini.
         }
+    }
+
+    private void playAutoTurn(Player player, PlayerStrategy strategy) {
+        view.displayTurnHeader(player);
+        view.displayBoard(game.getBoard(), game.getPlayers());
+        view.displayCurrentObjective(player);
+
+        // Rotation aléatoire
+        int rotations = strategy.chooseRotations(game);
+        for (int i = 0; i < rotations; i++) {
+            game.rotateSpareTile();
+        }
+
+        // Insertion valide aléatoire
+        Direction side;
+        int index;
+        do {
+            side = strategy.chooseInsertionSide(game);
+            index = strategy.chooseInsertionIndex(game);
+        } while (!game.canInsertTile(side, index));
+
+        game.doInsertTile(side, index);
+
+        view.showBoardAfterInsertion();
+        view.displayBoard(game.getBoard(), game.getPlayers());
+
+        // Déplacement aléatoire
+        Position from = player.getCurrentPosition();
+        var reachable = game.getPathFinder()
+                .getReachablePositions(game.getBoard(), from);
+
+        Position target = strategy.chooseMove(game, reachable);
+        game.doMovePlayer(target.getRow(), target.getCol());
     }
 
     private void insertPhase() {

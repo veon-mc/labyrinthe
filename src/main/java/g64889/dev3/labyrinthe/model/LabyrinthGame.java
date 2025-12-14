@@ -16,6 +16,8 @@ public class LabyrinthGame {
     private int lastInsertionIndex;
     private boolean tileInserted;
     private final CommandManager commandManager;
+    private final List<Observer> observers = new ArrayList<>();
+
 
     public LabyrinthGame() {
         this.commandManager = new CommandManager();
@@ -43,6 +45,7 @@ public class LabyrinthGame {
         gameOver = false;
         winner = null;
         tileInserted = false;
+        notifyObservers();
     }
 
     private void initObjectives() {
@@ -312,7 +315,7 @@ public class LabyrinthGame {
                 return false;
             }
         }
-
+        notifyObservers();
         return true;
     }
 
@@ -419,6 +422,7 @@ public class LabyrinthGame {
                 }
             }
         }
+        notifyObservers();
     }
 
     private void checkGameOver() {
@@ -444,6 +448,7 @@ public class LabyrinthGame {
 
     public void rotateSpareTile() {
         spareTile.rotate();
+        notifyObservers();
     }
 
     public Player getCurrentPlayer() {
@@ -476,10 +481,12 @@ public class LabyrinthGame {
 
     public void undo() {
         commandManager.undo();
+        notifyObservers();
     }
 
     public void redo() {
         commandManager.redo();
+        notifyObservers();
     }
 
     public boolean canUndo() {
@@ -577,6 +584,13 @@ public class LabyrinthGame {
         for (int i = 0; i < players.size(); i++) {
             players.get(i).setCurrentObjectiveIndex(indices.get(i));
         }
+    }
+
+    public void addObserver(Observer o) { observers.add(o); }
+    public void removeObserver(Observer o) { observers.remove(o); }
+
+    private void notifyObservers() {
+        for (Observer o : observers) o.onGameChanged();
     }
 }
 
