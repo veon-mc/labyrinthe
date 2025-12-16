@@ -333,11 +333,127 @@ public class ConsoleView {
 
     /**
      * Displays the full board with players and objectives.
-     *
-     * @param board   the game board
-     * @param players the list of players
      */
     public void displayBoard(Board board, List<Player> players) {
-        // No game logic is implemented here
+            int size = board.getSize();
+
+            System.out.println();
+
+            System.out.print("    ");
+            for (int col = 0; col < size; col++) {
+                if (col == 1 || col == 3 || col == 5) {
+                    System.out.print(" ↓  ");
+                } else {
+                    System.out.print("    ");
+                }
+            }
+            System.out.println();
+
+            System.out.print("    ");
+            for (int col = 0; col < size; col++) {
+                System.out.print(" " + col + "  ");
+            }
+            System.out.println();
+            System.out.print("   ╔");
+            for (int col = 0; col < size; col++) {
+                System.out.print("═══");
+                if (col < size - 1) {
+                    System.out.print("╦");
+                }
+            }
+            System.out.println("╗");
+
+            for (int row = 0; row < size; row++) {
+                if (row == 1 || row == 3 || row == 5) {
+                    System.out.print(" →");
+                } else {
+                    System.out.print("  ");
+                }
+                System.out.print(row + "║");
+
+                for (int col = 0; col < size; col++) {
+                    Tile tile = board.getTileAt(new Position(row, col));
+                    System.out.print(" " + (tile.hasOpening(Direction.NORTH) ? "│" : " ") + " ");
+                    if (col < size - 1) {
+                        System.out.print("║");
+                    }
+                }
+                System.out.print("║");
+                if (row == 1 || row == 3 || row == 5) {
+                    System.out.print("←");
+                }
+                System.out.println();
+
+                System.out.print("   ║");
+                for (int col = 0; col < size; col++) {
+                    Tile tile = board.getTileAt(new Position(row, col));
+                    char left = tile.hasOpening(Direction.WEST) ? '─' : ' ';
+                    char right = tile.hasOpening(Direction.EAST) ? '─' : ' ';
+                    char center = getTileCenter(tile, row, col, players);
+
+                    System.out.print("" + left + center + right);
+                    if (col < size - 1) {
+                        System.out.print("║");
+                    }
+                }
+                System.out.println("║");
+
+                System.out.print("   ║");
+                for (int col = 0; col < size; col++) {
+                    Tile tile = board.getTileAt(new Position(row, col));
+                    System.out.print(" " + (tile.hasOpening(Direction.SOUTH) ? "│" : " ") + " ");
+                    if (col < size - 1) {
+                        System.out.print("║");
+                    }
+                }
+                System.out.println("║");
+
+                if (row < size - 1) {
+                    System.out.print("   ╠");
+                    for (int col = 0; col < size; col++) {
+                        System.out.print("═══");
+                        if (col < size - 1) {
+                            System.out.print("╬");
+                        }
+                    }
+                    System.out.println("╣");
+                }
+            }
+
+            System.out.print("   ╚");
+            for (int col = 0; col < size; col++) {
+                System.out.print("═══");
+                if (col < size - 1) {
+                    System.out.print("╩");
+                }
+            }
+            System.out.println("╝");
+
+            System.out.print("    ");
+            for (int col = 0; col < size; col++) {
+                if (col == 1 || col == 3 || col == 5) {
+                    System.out.print(" ↑  ");
+                } else {
+                    System.out.print("    ");
+                }
+            }
+            System.out.println();
+        }
+
+    private char getTileCenter(Tile tile, int row, int col, List<Player> players) {
+        for (Player p : players) {
+            Position pos = p.getCurrentPosition();
+            if (pos.getRow() == row && pos.getCol() == col) {
+                return (char) ('0' + p.getId());
+            }
+        }
+
+        if (tile.getObjective() != null) {
+            return tile.getObjective().getName().charAt(0);
+        }
+
+        return '·';
     }
+
+
 }

@@ -155,26 +155,6 @@ public final class Images {
     }
 
     /**
-     * Applies a rotation to an image.
-     * <p>
-     * Note: this method currently returns the same {@link Image} reference after
-     * setting rotation on an {@link javafx.scene.image.ImageView}. Rotation is
-     * a visual property of ImageView, not of the Image itself.
-     *
-     * @param img              the image to rotate
-     * @param rotationDegrees  rotation angle in degrees
-     * @return the image (visual rotation must be applied on an ImageView)
-     */
-    private static Image applyRotation(Image img, double rotationDegrees) {
-        if (img == null) return null;
-
-        ImageView imageView = new javafx.scene.image.ImageView(img);
-        imageView.setRotate(rotationDegrees);
-
-        return imageView.getImage();
-    }
-
-    /**
      * Returns the objective image used in the HUD.
      *
      * @param obj the objective
@@ -338,19 +318,17 @@ public final class Images {
     public static Image spareTileImage(Tile tile) {
         if (tile == null) return null;
 
+        // Si la tuile libre a un objectif → image de l'objectif
         if (tile.getObjective() != null) {
-            double rotationDegrees = correctionDegrees(tile.getObjective());
-            Image img = loadGoalForObjective(tile.getObjective());
-            return applyRotation(img, rotationDegrees);
+            return loadGoalForObjective(tile.getObjective());
         }
 
-        Image img = switch (tile.getType()) {
+        // Sinon image standard selon le type
+        return switch (tile.getType()) {
             case I -> loadOrThrow("/images/I_tiles/I_Shape.jpg");
             case L -> loadOrThrow("/images/L_tiles/L_tile.jpg");
             case T -> loadOrThrow("/images/T_tiles/T_tile.jpg");
         };
-
-        return applyRotation(img, 0.0);
     }
 
     /**

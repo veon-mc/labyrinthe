@@ -200,7 +200,6 @@ class LabyrinthGameTest {
     void doInsertTile_thenUndo_shouldBePossible() {
         game.startGame(2);
 
-        // doInsertTile utilise les Commands -> si tes classes InsertTileCommand/CommandManager existent OK
         game.doInsertTile(Direction.WEST, 1);
         assertTrue(game.canUndo());
 

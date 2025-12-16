@@ -136,9 +136,7 @@ public class FxController {
         if (aiPlaying || !isHumanTurn()) return true;
 
         if (suspendAutoPlay) suspendAutoPlay = false;
-        if (needsInsertedTile && !game.isTileInserted()) return true;
-
-        return false;
+        return needsInsertedTile && !game.isTileInserted();
     }
 
     /**
