@@ -1,33 +1,63 @@
 package g64889.dev3.labyrinthe.controller;
 
-import java.util.ArrayList;
-import java.util.List;
+import g64889.dev3.labyrinthe.console.ConsoleView;
 import g64889.dev3.labyrinthe.controller.strategy.PlayerStrategy;
 import g64889.dev3.labyrinthe.controller.strategy.RandomStrategy;
 import g64889.dev3.labyrinthe.model.*;
-import g64889.dev3.labyrinthe.console.ConsoleView;
+import g64889.dev3.labyrinthe.model.enumeration.Direction;
 
+import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * ConsoleController manages the flow of the game in console mode.
+ * <p>
+ * It connects the {@link LabyrinthGame} model with the {@link ConsoleView}
+ * and coordinates user actions, AI strategies and game phases.
+ * <p>
+ * This class does not contain any game logic itself; all rules are enforced
+ * by the model. The controller only calls model methods and updates the view.
+ */
 public class ConsoleController {
 
+    /** The game model (facade) */
     private final LabyrinthGame game;
+
+    /** The console view used for input and output */
     private final ConsoleView view;
+
+    /** List of strategies, one per player (null = human player) */
     private List<PlayerStrategy> strategies;
 
+    /**
+     * Creates a new console controller.
+     *
+     * @param game the game model
+     * @param view the console view
+     */
     public ConsoleController(LabyrinthGame game, ConsoleView view) {
         this.game = game;
         this.view = view;
     }
 
+    /**
+     * Starts the game loop.
+     * <p>
+     * This method initializes the game, assigns strategies to players
+     * (human or AI), and runs the main game loop until the game is over.
+     */
     public void start() {
         view.showWelcome();
 
         int nbPlayers = view.askNumberOfPlayers();
         game.startGame(nbPlayers);
+
         strategies = new ArrayList<>();
 
+        // Player 1 is human (no strategy)
         strategies.add(null);
 
+        // Other players use a random AI strategy
         for (int i = 1; i < nbPlayers; i++) {
             strategies.add(new RandomStrategy());
         }
@@ -41,6 +71,13 @@ public class ConsoleController {
         view.displayWinner(game.getWinner());
     }
 
+    /**
+     * Plays a full turn for the current player.
+     * <p>
+     * If the player has an associated {@link PlayerStrategy},
+     * the turn is played automatically. Otherwise, the player
+     * interacts through the console.
+     */
     private void playTurn() {
         Player current = game.getCurrentPlayer();
         PlayerStrategy strategy = strategies.get(current.getId() - 1);
@@ -50,13 +87,14 @@ public class ConsoleController {
             return;
         }
 
+        // Human player turn
         while (!game.isGameOver() && game.getCurrentPlayer() == current) {
 
             view.displayTurnHeader(current);
             view.displayBoard(game.getBoard(), game.getPlayers());
             view.displayCurrentObjective(current);
 
-            // Phase insertion (si pas encore insérée)
+            // Phase 1: tile insertion
             if (!game.isTileInserted()) {
                 insertPhase();
 
@@ -64,27 +102,29 @@ public class ConsoleController {
                 view.displayBoard(game.getBoard(), game.getPlayers());
             }
 
-            // Phase move
+            // Phase 2: movement
             movePhase();
-
-            // Si un undo/redo a annulé l'insertion pendant movePhase(),
-            // on reboucle et on repasse par insertPhase().
-            // Sinon, movePhase() a normalement fait doMovePlayer() => nextPlayer() => le tour est fini.
         }
     }
 
+    /**
+     * Plays a complete turn automatically using a strategy.
+     *
+     * @param player   the player controlled by the AI
+     * @param strategy the strategy used to make decisions
+     */
     private void playAutoTurn(Player player, PlayerStrategy strategy) {
         view.displayTurnHeader(player);
         view.displayBoard(game.getBoard(), game.getPlayers());
         view.displayCurrentObjective(player);
 
-        // Rotation aléatoire
+        // Random rotations of the spare tile
         int rotations = strategy.chooseRotations(game);
         for (int i = 0; i < rotations; i++) {
             game.rotateSpareTile();
         }
 
-        // Insertion valide aléatoire
+        // Random valid insertion
         Direction side;
         int index;
         do {
@@ -97,7 +137,7 @@ public class ConsoleController {
         view.showBoardAfterInsertion();
         view.displayBoard(game.getBoard(), game.getPlayers());
 
-        // Déplacement aléatoire
+        // Random movement among reachable positions
         Position from = player.getCurrentPosition();
         var reachable = game.getPathFinder()
                 .getReachablePositions(game.getBoard(), from);
@@ -106,6 +146,12 @@ public class ConsoleController {
         game.doMovePlayer(target.getRow(), target.getCol());
     }
 
+    /**
+     * Handles the tile insertion phase for a human player.
+     * <p>
+     * The player can rotate the spare tile, insert it,
+     * or use undo/redo commands until a valid insertion is performed.
+     */
     private void insertPhase() {
         view.showInsertPhase();
         view.displaySpareTile(game.getSpareTile());
@@ -123,7 +169,7 @@ public class ConsoleController {
                     Direction side = view.askSide();
                     int index = view.askIndex();
                     try {
-                        game.doInsertTile(side, index); // IMPORTANT
+                        game.doInsertTile(side, index);
                         view.showTileInserted(side, index);
                     } catch (IllegalArgumentException | IllegalStateException e) {
                         view.showInsertError(e.getMessage());
@@ -133,19 +179,29 @@ public class ConsoleController {
                     if (game.canUndo()) {
                         game.undo();
                         view.showUndo();
-                    } else view.showCannotUndo();
+                    } else {
+                        view.showCannotUndo();
+                    }
                 }
                 case "d" -> {
                     if (game.canRedo()) {
                         game.redo();
                         view.showRedo();
-                    } else view.showCannotRedo();
+                    } else {
+                        view.showCannotRedo();
+                    }
                 }
                 default -> view.showInvalidCommand();
             }
         }
     }
 
+    /**
+     * Handles the movement phase for a human player.
+     * <p>
+     * The player may move to a reachable position, stay on the same cell,
+     * or use undo/redo commands. The phase ends when a valid move is performed.
+     */
     private void movePhase() {
         view.showMovePhase(game.getCurrentPlayer());
 
@@ -158,7 +214,7 @@ public class ConsoleController {
                     if (game.canUndo()) {
                         game.undo();
 
-                        // Si l'undo annule l'insertion → retour insertion
+                        // If undo cancels the insertion, return to insertion phase
                         if (!game.isTileInserted()) {
                             return;
                         }
@@ -174,7 +230,7 @@ public class ConsoleController {
                     if (game.canRedo()) {
                         game.redo();
 
-                        // Si le redo annule l'insertion → retour insertion
+                        // If redo cancels the insertion, return to insertion phase
                         if (!game.isTileInserted()) {
                             return;
                         }
