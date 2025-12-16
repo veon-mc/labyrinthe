@@ -90,8 +90,9 @@ public class FxController {
      * Refreshes insertion arrows according to the current game state.
      */
     private void refreshInsertionArrows() {
-        view.getInsertionPad().updateInsertionArrows(game);
+        view.getInsertionPad().updateInsertionArrows(game::canInsertTile);
     }
+
 
     /**
      * Checks whether it is currently the human player's turn.

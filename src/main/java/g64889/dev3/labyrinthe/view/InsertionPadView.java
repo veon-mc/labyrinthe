@@ -130,27 +130,19 @@ public class InsertionPadView {
     }
 
     /**
-     * Updates all insertion arrows according to the current game rules.
-     * <p>
-     * This method is typically called by the controller after each action
-     * that could change insertion validity.
+     * Enables/disables all insertion arrows using the given decision callback.
+     * The callback receives (side, index) and must return true if the arrow is allowed.
      *
-     * @param game the current game instance
+     * @param canInsert function that returns whether an insertion is allowed
      */
-    public void updateInsertionArrows(g64889.dev3.labyrinthe.model.LabyrinthGame game) {
+    public void updateInsertionArrows(java.util.function.BiPredicate<Direction, Integer> canInsert) {
         int[] idx = {1, 3, 5};
-        Direction[] sides = {
-                Direction.NORTH,
-                Direction.SOUTH,
-                Direction.EAST,
-                Direction.WEST
-        };
+        Direction[] sides = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
 
         for (Direction side : sides) {
             for (int i : idx) {
-                boolean can = game.canInsertTile(side, i);
-                setArrowEnabled(side, i, can);
+                setArrowEnabled(side, i, canInsert.test(side, i));
             }
         }
     }
-}
+    }
