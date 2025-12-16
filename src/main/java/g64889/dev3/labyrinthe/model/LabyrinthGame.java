@@ -883,8 +883,7 @@ public class LabyrinthGame implements Observable {
     /**
      * Notifies all registered observers.
      */
-    @Override
-    public void notifyObservers() {
+    private void notifyObservers() {
         for (Observer o : observers) o.update();
     }
 

@@ -8,6 +8,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.Label;
 
+import java.util.List;
+
 /**
  * Heads-up display (HUD) of the game.
  * <p>
@@ -124,7 +126,7 @@ public class HudView extends VBox {
      * @param current the current player
      * @param players the list of all players
      */
-    public void setTurnAndPlayers(Player current, java.util.List<Player> players) {
+    public void setTurnAndPlayers(Player current, List<Player> players) {
         turnLabel.setText("Tour : " + current.getName());
 
         playersBox.getChildren().clear();

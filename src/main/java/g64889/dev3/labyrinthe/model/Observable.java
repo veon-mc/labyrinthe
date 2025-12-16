@@ -22,8 +22,4 @@ public interface Observable {
      */
     void removeObserver(Observer observer);
 
-    /**
-     * Notifies all registered observers of a state change.
-     */
-    void notifyObservers();
 }

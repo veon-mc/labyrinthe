@@ -6,6 +6,7 @@ import javafx.scene.Node;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 
 /**
  * Manages the insertion arrows displayed around the board.
@@ -135,7 +136,7 @@ public class InsertionPadView {
      *
      * @param canInsert function that returns whether an insertion is allowed
      */
-    public void updateInsertionArrows(java.util.function.BiPredicate<Direction, Integer> canInsert) {
+    public void updateInsertionArrows(BiPredicate<Direction, Integer> canInsert) {
         int[] idx = {1, 3, 5};
         Direction[] sides = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
 
