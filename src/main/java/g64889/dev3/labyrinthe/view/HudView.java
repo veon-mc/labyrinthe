@@ -1,8 +1,6 @@
 package g64889.dev3.labyrinthe.view;
 
 import g64889.dev3.labyrinthe.model.*;
-import g64889.dev3.labyrinthe.model.enumeration.Direction;
-import g64889.dev3.labyrinthe.model.enumeration.TileType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -11,18 +9,17 @@ import javafx.scene.layout.VBox;
 import javafx.scene.control.Label;
 
 /**
- * JavaFX HUD (Heads-Up Display) for the Labyrinth game.
+ * Heads-up display (HUD) of the game.
  * <p>
- * This view shows:
+ * This view displays:
  * <ul>
  *   <li>the spare tile to insert</li>
- *   <li>the current objective (image)</li>
- *   <li>the current turn and phase</li>
- *   <li>a small panel with players progress</li>
- *   <li>buttons for undo/redo/rotate/abandon</li>
+ *   <li>the current objective image</li>
+ *   <li>current turn information and players progress</li>
+ *   <li>action buttons (undo, redo, rotate, abandon)</li>
  * </ul>
- * The HUD does not contain game logic: it only displays data and forwards
- * user actions through handlers provided by the controller.
+ * <p>
+ * This class only handles UI rendering and user interactions.
  */
 public class HudView extends VBox {
 
@@ -38,9 +35,7 @@ public class HudView extends VBox {
     private final Button abandonBtn;
 
     /**
-     * Creates a new HUD view and initializes all UI elements.
-     * <p>
-     * The visual style is defined directly via JavaFX CSS strings.
+     * Creates the HUD view and initializes all UI components.
      */
     public HudView() {
         setStyle("""
@@ -115,21 +110,19 @@ public class HudView extends VBox {
     }
 
     /**
-     * Updates the displayed objective image.
+     * Sets the objective image displayed in the HUD.
      *
-     * @param obj the objective to show (null clears the image)
+     * @param obj the objective to display (may be null)
      */
     public void setObjective(Objective obj) {
         objectiveImg.setImage(obj == null ? null : Images.hudObjective(obj));
     }
 
     /**
-     * Updates the current turn label and rebuilds the player progress panel.
-     * <p>
-     * For each player, it displays name, color, progress, and current target.
+     * Updates the current player label and the players status list.
      *
      * @param current the current player
-     * @param players all players
+     * @param players the list of all players
      */
     public void setTurnAndPlayers(Player current, java.util.List<Player> players) {
         turnLabel.setText("Tour : " + current.getName());
@@ -165,12 +158,11 @@ public class HudView extends VBox {
     }
 
     /**
-     * Updates the displayed spare tile image and rotation.
+     * Sets the spare tile image displayed in the HUD and applies the correct rotation.
      * <p>
-     * Rotation is computed from openings and can include additional
-     * adjustments for specific tiles/objectives.
+     * The rotation logic is delegated to {@link HudTileRotation} to keep this class focused on UI rendering.
      *
-     * @param tile the spare tile to display (null clears the image)
+     * @param tile the spare tile (may be null)
      */
     public void setSpareTile(Tile tile) {
         if (tile == null) {
@@ -181,57 +173,16 @@ public class HudView extends VBox {
 
         spareImg.setImage(Images.spareTileImage(tile));
 
-        double rot = rotationFromOpenings(tile);
-
-        if (tile.getType() == TileType.L && tile.getObjective() != null) {
-            rot = (rot + 90) % 360;
-        }
-
-        if (tile.getObjective() != null) {
-            String key = tile.getObjective().getName();
-
-            switch (key) {
-                case "rat" -> rot = (rot + 90) % 360;
-                case "scarabée", "hibou" -> rot = (rot + 180) % 360;
-                default -> { /* no extra rotation */ }
-            }
-        }
+        // 🔁 EXACT same rotation logic as before, just delegated
+        double rot = HudTileRotation.spareRotation(tile);
 
         spareImg.setRotate(rot);
     }
 
     /**
-     * Computes the visual rotation angle based on the tile openings.
+     * Updates the displayed phase (insertion or movement).
      *
-     * @param tile the tile to analyze
-     * @return rotation angle in degrees (0, 90, 180, 270)
-     */
-    private double rotationFromOpenings(Tile tile) {
-        var o = tile.getOpenings();
-
-        return switch (tile.getType()) {
-            case I -> o.contains(Direction.EAST) ? 90 : 0;
-
-            case L -> {
-                if (o.contains(Direction.NORTH) && o.contains(Direction.EAST)) yield 0;
-                if (o.contains(Direction.EAST) && o.contains(Direction.SOUTH)) yield 90;
-                if (o.contains(Direction.SOUTH) && o.contains(Direction.WEST)) yield 180;
-                yield 270;
-            }
-
-            case T -> {
-                if (!o.contains(Direction.SOUTH)) yield 0;
-                if (!o.contains(Direction.WEST))  yield 90;
-                if (!o.contains(Direction.NORTH)) yield 180;
-                yield 270;
-            }
-        };
-    }
-
-    /**
-     * Updates the phase label based on whether the tile has been inserted.
-     *
-     * @param tileInserted true if the current player already inserted the tile
+     * @param tileInserted true if the spare tile was inserted this turn
      */
     public void setPhase(boolean tileInserted) {
         if (tileInserted) {
@@ -244,16 +195,16 @@ public class HudView extends VBox {
     /**
      * Enables or disables the rotate button.
      *
-     * @param v true to disable the button
+     * @param v true to disable
      */
     public void setRotateDisabled(boolean v) {
         rotateBtn.setDisable(v);
     }
 
     /**
-     * Adds a simple hover effect to a button by changing its style.
+     * Adds a hover style effect to a button.
      *
-     * @param b the button to configure
+     * @param b the button to style
      */
     private void addHoverEffect(Button b) {
         String normal = """
@@ -275,45 +226,23 @@ public class HudView extends VBox {
         b.setOnMouseExited(e -> b.setStyle(normal));
     }
 
-    /**
-     * Registers a handler for the undo button.
-     *
-     * @param r action to execute when the button is pressed
-     */
+    // --- handlers (controller only) ---
     public void onUndo(Runnable r) { undoBtn.setOnAction(e -> r.run()); }
-
-    /**
-     * Registers a handler for the redo button.
-     *
-     * @param r action to execute when the button is pressed
-     */
     public void onRedo(Runnable r) { redoBtn.setOnAction(e -> r.run()); }
-
-    /**
-     * Registers a handler for the rotate button.
-     *
-     * @param r action to execute when the button is pressed
-     */
     public void onRotate(Runnable r) { rotateBtn.setOnAction(e -> r.run()); }
-
-    /**
-     * Registers a handler for the abandon button.
-     *
-     * @param r action to execute when the button is pressed
-     */
     public void onAbandon(Runnable r) { abandonBtn.setOnAction(e -> r.run()); }
 
     /**
      * Enables or disables the undo button.
      *
-     * @param v true to disable the button
+     * @param v true to disable
      */
     public void setUndoDisabled(boolean v) { undoBtn.setDisable(v); }
 
     /**
      * Enables or disables the redo button.
      *
-     * @param v true to disable the button
+     * @param v true to disable
      */
     public void setRedoDisabled(boolean v) { redoBtn.setDisable(v); }
 }
