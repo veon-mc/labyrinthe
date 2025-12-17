@@ -90,6 +90,7 @@ public class FxController {
      * Refreshes insertion arrows according to the current game state.
      */
     private void refreshInsertionArrows() {
+        // We do method reference to validate the BiPredicate in update... method //
         view.getInsertionPad().updateInsertionArrows(game::canInsertTile);
     }
 
@@ -115,6 +116,8 @@ public class FxController {
         view.getHudView().setRotateDisabled(disabled);
         view.getBoardView().setDisable(disabled);
 
+        // When the interface is reactivated, the insertion arrows are only reactivated
+        // if we are still in the tile insertion phase.
         if (!disabled && !game.isTileInserted()) {
             refreshInsertionArrows();
         }
@@ -125,7 +128,7 @@ public class FxController {
     /**
      * Common guard used to block invalid human actions.
      *
-     * @param needsInsertedTile true if the action requires a tile to be inserted first
+     * @param needsInsertedTile true if the action requires a tile to be inserted first (movement phase)
      * @return true if the action must be blocked
      */
     private boolean blockIfNotHumanAction(boolean needsInsertedTile) {
@@ -134,7 +137,9 @@ public class FxController {
             return true;
         }
         if (aiPlaying || !isHumanTurn()) return true;
-
+        // This instruction allows auto-play to be reactivated as soon
+        // as a human action is performed,
+        // so that automatic turns can resume normally after the player's intervention.
         if (suspendAutoPlay) suspendAutoPlay = false;
         return needsInsertedTile && !game.isTileInserted();
     }
@@ -142,6 +147,8 @@ public class FxController {
     /**
      * Handles undo/redo actions with a common behavior.
      *
+     * It temporarily suspends auto-play, executes the requested action,
+     * and then updates the interface to ensure state consistency after an undo or redo.
      * @param action the history action to execute
      */
     private void handleHistoryAction(Runnable action) {

@@ -86,6 +86,7 @@ public class LabyrinthGame implements Observable {
         initPlayers(nbPlayers);
         initBoard();
         distributeCards(nbPlayers);
+        commandManager.clear();
 
         currentPlayerIndex = 0;
         gameOver = false;
@@ -188,7 +189,7 @@ public class LabyrinthGame implements Observable {
         List<Objective> poolT = new ArrayList<>();
         List<Objective> poolL = new ArrayList<>();
 
-        for (Objective o : objectives) {
+        for (Objective o : remaining) {
             String n = o.getName();
             if (ALLOWED_T.contains(n)) poolT.add(o);
             else if (ALLOWED_L.contains(n)) poolL.add(o);
@@ -613,7 +614,7 @@ public class LabyrinthGame implements Observable {
 
         if (!player.hasCompletedAllObjectives()) {
             ObjectiveCard currentCard = player.getCurrentObjective();
-
+            // Prevents NullPointerException //
             if (currentTile.getObjective() != null && currentCard != null) {
                 String tileName = currentTile.getObjective().getName();
                 String wantedName = currentCard.getObjective().getName();

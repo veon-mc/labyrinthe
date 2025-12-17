@@ -1,6 +1,7 @@
 package g64889.dev3.labyrinthe.model;
 
 import g64889.dev3.labyrinthe.model.enumeration.PlayerColor;
+import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -167,5 +168,12 @@ public class Player {
     /** @return the player's color. */
     public PlayerColor getColor() {
         return color;
+    }
+
+    /**
+     * Gets the amount of completed objectives.
+     */
+    public int getCompletedObjectivesCount() {
+        return Math.min(getCurrentObjectiveIndex(), getObjectives().size());
     }
 }

@@ -120,43 +120,39 @@ public class HudView extends VBox {
         objectiveImg.setImage(obj == null ? null : Images.hudObjective(obj));
     }
 
-    /**
-     * Updates the current player label and the players status list.
-     *
-     * @param current the current player
-     * @param players the list of all players
-     */
     public void setTurnAndPlayers(Player current, List<Player> players) {
         turnLabel.setText("Tour : " + current.getName());
-
         playersBox.getChildren().clear();
 
         for (Player p : players) {
-            int total = p.getObjectives().size();
-            int done = Math.min(p.getCurrentObjectiveIndex(), total);
-
-            Label name = new Label(p.getName() + " (" + p.getColor() + ")");
-            name.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
-
-            Label prog = new Label("Objectifs : " + done + " / " + total);
-            prog.setStyle("-fx-text-fill: #dddddd;");
-
-            String cur = (p.hasCompletedAllObjectives() || p.getCurrentObjective() == null)
-                    ? "Terminé"
-                    : p.getCurrentObjective().getObjective().getName();
-            Label curObj = new Label("Cible : " + cur);
-            curObj.setStyle("-fx-text-fill: #bbbbbb;");
-
-            VBox card = new VBox(2, name, prog, curObj);
-            card.setPadding(new Insets(8));
-            card.setStyle("-fx-border-color: rgba(255,255,255,0.25); -fx-border-radius: 10; -fx-background-radius: 10;");
-
-            if (p.getId() == current.getId()) {
-                card.setStyle(card.getStyle() + "-fx-border-color: gold; -fx-border-width: 2;");
-            }
-
+            VBox card = createPlayerCard(p, p.getId() == current.getId());
             playersBox.getChildren().add(card);
         }
+    }
+
+    private VBox createPlayerCard(Player p, boolean isCurrentPlayer) {
+        Label name = new Label(p.getName() + " (" + p.getColor() + ")");
+        name.setStyle("-fx-font-weight: bold; -fx-text-fill: white;");
+
+        Label prog = new Label("Objectifs : " + p.getCompletedObjectivesCount()
+                + " / " + p.getObjectives().size());
+        prog.setStyle("-fx-text-fill: #dddddd;");
+
+        String cur = (p.hasCompletedAllObjectives() || p.getCurrentObjective() == null)
+                ? "Terminé"
+                : p.getCurrentObjective().getObjective().getName();
+        Label curObj = new Label("Cible : " + cur);
+        curObj.setStyle("-fx-text-fill: #bbbbbb;");
+
+        VBox card = new VBox(2, name, prog, curObj);
+        card.setPadding(new Insets(8));
+        card.setStyle("-fx-border-color: rgba(255,255,255,0.25); -fx-border-radius: 10; -fx-background-radius: 10;");
+
+        if (isCurrentPlayer) {
+            card.setStyle(card.getStyle() + "-fx-border-color: gold; -fx-border-width: 2;");
+        }
+
+        return card;
     }
 
     /**

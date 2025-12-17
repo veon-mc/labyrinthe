@@ -1,5 +1,7 @@
 package g64889.dev3.labyrinthe.model.enumeration;
 
+import javafx.scene.paint.Color;
+
 /**
  * Represents the available colors for players.
  * <p>
@@ -18,5 +20,14 @@ public enum PlayerColor {
     YELLOW,
 
     /** Green player color. */
-    GREEN
+    GREEN;
+
+    public Color toJavaFXColor() {
+        return switch (this) {
+            case RED -> Color.RED;
+            case BLUE -> Color.DODGERBLUE;
+            case GREEN -> Color.LIMEGREEN;
+            case YELLOW -> Color.GOLD;
+        };
+    }
 }

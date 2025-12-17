@@ -20,14 +20,7 @@ public class PlayerView extends Circle {
      */
     public PlayerView(Player player) {
         super(8);
-
-        setFill(switch (player.getColor()) {
-            case RED -> Color.RED;
-            case BLUE -> Color.DODGERBLUE;
-            case GREEN -> Color.LIMEGREEN;
-            case YELLOW -> Color.GOLD;
-        });
-
+        setFill(player.getColor().toJavaFXColor());
         setStroke(Color.BLACK);
     }
 }
